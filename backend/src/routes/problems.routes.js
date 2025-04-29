@@ -1,15 +1,15 @@
 import express from 'express';
-import { authMiddleware } from '../middlewares/auth.middlewares.js';
+import { authMiddleware, isAdmin } from '../middlewares/auth.middlewares.js';
 
 const problemRoutes = express.Router();
 
 
-problemRoutes.post('/create-problem',authMiddleware, );
-problemRoutes.get('/get-problem/:id');
-problemRoutes.get('/get-Allproblems');
-problemRoutes.get('/update-problem/:id');
-problemRoutes.get('/delete-problem/:id');
-problemRoutes.get('/get-solvedProblems');
+ problemRoutes.post('/create-problem',authMiddleware, isAdmin,createProblem);
+ problemRoutes.get('/get-problem/:id',authMiddleware, getProblemById);
+ problemRoutes.get('/get-Allproblems',authMiddleware, getAllProblems);
+ problemRoutes.put('/update-problem/:id',authMiddleware, isAdmin,updateProblemById);
+ problemRoutes.delete('/delete-problem/:id',authMiddleware, isAdmin,deleteProblemById);
+ problemRoutes.get('/get-solvedProblems',authMiddleware , getAllProblemsSolvedByUser);
 
 
 export default problemRoutes;
