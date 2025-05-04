@@ -48,8 +48,8 @@ model Problem {
   userId String
   examples Json
   constraints String
-  hints String
-  editorial String
+  hints String?
+  editorial String?
   testCases Json      //For eg- {Input: String, Output: String}[]
   codeSnippets Json
   refrenceSolutions Json

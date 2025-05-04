@@ -1,5 +1,9 @@
 import { db } from "../libs/db.js";
-import { getJudge0LanguageId, submitBatch } from "../libs/judge0.libs.js";
+import {
+  getJudge0LanguageId,
+  pollBatchResults,
+  submitBatch,
+} from "../libs/judge0.libs.js";
 
 export const createProblem = async (req, res) => {
   const {
@@ -7,7 +11,7 @@ export const createProblem = async (req, res) => {
     description,
     difficulty,
     tags,
-    testcases,
+    testCases,
     examples,
     constraints,
     codeSnippets,
@@ -30,48 +34,65 @@ export const createProblem = async (req, res) => {
         });
       }
 
-      const submissions = testcases.map(({ input, output }) => ({
+      const submissions = testCases.map(({ input, output }) => ({
+        language_id: langaugeID,
         source_code: solutioncode,
-        langaue_id: langaugeID,
         stdin: input,
         expected_output: output,
       }));
 
+    
       const submissionResults = await submitBatch(submissions);
+
+      console.log("Submission Results", submissionResults);
+
       const token = submissionResults.map((result) => result.token);
+
 
       const results = await pollBatchResults(token);
 
+
       for (let i = 0; i < results.length; i++) {
-          const result = results[i] ; 
-          if(result.status.id !== 3){
-            return res.status(400).json({
-              message: `Test case ${i + 1} failed for language ${langauge } with status ${result.status.description}`,
-            });
-          }
+        const result = results[i];
+         console.log("Result-------", results);
+        if (result.status.id !== 3) {
+          return res.status(400).json({
+            message: `Test case ${
+              i + 1
+            } failed for language ${langauge} with status ${
+              result.status.description
+            }`,
+          });
+        }
       }
 
       const newProblem = await db.problem.create({
-        data:{
+        data: {
           title,
           description,
           difficulty,
           tags,
-          testcases,
+          testCases,
           examples,
           constraints,
           codeSnippets,
-          refrenceSolutions ,
+          refrenceSolutions,
           userId: req.user.id,
-        }
-      }) ;
+        },
+      });
 
       return res.status(201).json({
         message: "Problem created successfully",
         problem: newProblem,
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
 };
 
 export const getProblemById = async (req, res) => {};
