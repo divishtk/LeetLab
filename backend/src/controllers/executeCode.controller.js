@@ -1,4 +1,6 @@
-import { pollBatchResults, submitBatch } from "../libs/judge0.libs.js";
+import { getLanguageName, pollBatchResults, submitBatch } from "../libs/judge0.libs.js";
+import {db} from '../libs/db.js'
+
 
 export const executeCode = async (req, res) => {
   try {
@@ -37,11 +39,74 @@ export const executeCode = async (req, res) => {
 
     const results = await pollBatchResults(tokens);
 
-   
+    console.log(results)
+
+    let allTestCasesPassed = true;
+    const detailedResults = results.map((res, i) => {
+        const stdout = res.stdout?.trim() ;
+        const expected_output = expected_outputs[i]?.trim() ;
+        const passed = stdout === expected_output 
+
+        // console.log(`Test case ${i+1}`);
+        // console.log(`Input for test case #${i+1} ${stdin[i]}`)
+        // console.log(`Expected Output for test case #${i+1} ${expected_output}`)
+        // console.log(`Std Output for test case #${i+1} ${stdout}`)
+
+        // console.log(`Matched for test case #${i+1}` ,passed)
+
+        if(!passed) allTestCasesPassed = false ;
+
+        return {
+            testCase: i + 1 ,
+            passed ,
+            stdout ,
+            expected: expected_output ,
+            stderr : res.stderr || null ,
+            compileOutput: res.compile_output || null ,
+            status : res.status.description ,
+            memory: res.memory ? `${res.memory} Kb` : undefined ,
+            time: res.time ? `${res.time} seconds` : undefined  
+        }
+    });
+
+
+    const submissions = await db.submission.create({
+         data :{
+            userId ,
+            problemId ,
+            sourceCode : source_code ,
+            language : getLanguageName(language_id) ,
+            stdin : stdin.join(`\n`) ,
+            stdout : JSON.stringify(detailedResults.map((r)=>r.stdout)) ,
+            stderr : detailedResults.some((res)=>res.stderr) ? JSON.stringify(detailedResults.map((res)=>res.stderr)) : null ,
+            compileOutput : detailedResults.some((res)=>res.compile_output) ? JSON.stringify(detailedResults.map((res)=>res.compile_output)) : null ,
+            status : allTestCasesPassed ? "Accepted" : "Wrong Answer" ,
+            memory : detailedResults.some((res)=>res.memory) ? JSON.stringify(detailedResults.map((res)=>res.memory)) : null ,
+            time : detailedResults.some((res)=>res.time) ? JSON.stringify(detailedResults.map((res)=>res.time)) : null
+
+         }
+    })
+
+    //All test cases passed  = marked as true for current user
+
+    if(allTestCasesPassed) {
+        await db.problemSolved.upsert({
+            where:{
+                userI
+            }
+        })
+    }
+
 
     res.status(200).json({
       success: true,
       message: "Code executed successfully",
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error executing code:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while executing code",
+    });
+  }
 };
