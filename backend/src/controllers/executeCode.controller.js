@@ -92,16 +92,55 @@ export const executeCode = async (req, res) => {
     if(allTestCasesPassed) {
         await db.problemSolved.upsert({
             where:{
-                userI
+                userId_problemId:{
+                    userId ,
+                    problemId
+                }
+            } ,
+            update : { 
+
+            },
+            create :{
+                userId ,
+                problemId ,
             }
         })
     }
 
+    // save individual test cases results
+    const testCasesResults = detailedResults.map((res) =>({
+        submissionId : submissions.id ,
+        testCase: res.testCase  ,
+        passed : res.passed ,
+        stdout : res.stdout ,
+        expected: res.expected ,
+        stderr : res.stderr ,
+        compileOutput: res.compile_output ,
+        status : res.status ,
+        memory : res.memory ,
+        time : res.time
+
+    }))
+
+    await db.testCaseResults.createMany({
+        data: testCasesResults
+    })
+
+    const submissionWithTestCase = await db.submission.findUnique({
+        where:{
+            id: submissions.id ,
+        } ,
+        include:{
+            testCases: true
+        }
+    })
 
     res.status(200).json({
       success: true,
       message: "Code executed successfully",
+      submission: submissionWithTestCase
     });
+
   } catch (error) {
     console.error("Error executing code:", error);
     res.status(500).json({
