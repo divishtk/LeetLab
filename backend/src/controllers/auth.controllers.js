@@ -13,8 +13,6 @@ export const register = async (req, res) => {
         name
     } = req.body;
 
-    console.log("1");
-    console.log(req.body);
 
     try {
         const existinguUser = await db.user.findUnique({

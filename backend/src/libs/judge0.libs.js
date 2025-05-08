@@ -17,7 +17,6 @@ export const submitBatch = async (submissions) => {
       submissions
     },
   );
-  console.log("Submissions data", data);
   return data;
 };
 
