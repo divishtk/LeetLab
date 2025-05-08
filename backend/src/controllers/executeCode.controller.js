@@ -39,11 +39,11 @@ export const executeCode = async (req, res) => {
 
     const results = await pollBatchResults(tokens);
 
-    console.log(results)
 
     let allTestCasesPassed = true;
     const detailedResults = results.map((res, i) => {
         const stdout = res.stdout?.trim() ;
+
         const expected_output = expected_outputs[i]?.trim() ;
         const passed = stdout === expected_output 
 
@@ -87,6 +87,7 @@ export const executeCode = async (req, res) => {
          }
     })
 
+
     //All test cases passed  = marked as true for current user
 
     if(allTestCasesPassed) {
@@ -122,6 +123,7 @@ export const executeCode = async (req, res) => {
 
     }))
 
+
     await db.testCaseResults.createMany({
         data: testCasesResults
     })
@@ -134,6 +136,7 @@ export const executeCode = async (req, res) => {
             testCases: true
         }
     })
+
 
     res.status(200).json({
       success: true,
