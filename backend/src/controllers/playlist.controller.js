@@ -36,12 +36,107 @@ export const createPlayList = async (req, resp) => {
   }
 };
 
-export const addProblemToPlaylist = async (req, resp) => {};
+export const addProblemToPlaylist = async (req, resp) => {
+    const { playListid } = req.params;
+    const { problemIds } = req.body;
+    
+    try {
+        if(!Array.isArray(problemIds) || problemIds.length === 0) {
+            return resp.status(400).json({
+                success: false,
+                message: "Invalid problem IDs",
+            });
+        }
 
-export const deletePlaylist = async (req, resp) => {};
+        const problemsInPlayList = await db.problemsInPlayList.createMany({
+            data: problemIds.map((problemId)=>({
+                playListid,
+                problemId ,
+                
+            }))
+        })
+
+        return resp.status(200).json({
+            success: true,
+            message: "Problems added to playlist successfully",
+            problemsInPlayList
+        });
+        
+    } catch (error) {
+        console.error("Error adding problems to playlist:", error);
+        return resp.status(500).json({
+            success: false,
+            message: "Internal server error while adding problems to playlist",
+        });
+    }
+    
+};
+
+export const deletePlaylist = async (req, resp) => {  
+    const { playListid } = req.params;
+
+    try {
+        const deletedPlaylist = await db.playlist.delete({
+            where: {
+                id: playListid,
+            }
+        });
+
+        if (!deletedPlaylist) {
+            return resp.status(400).json({
+                success: false,
+                message: "Failed to delete playlist",
+            });
+        }
+
+        return resp.status(200).json({
+            success: true,
+            message: "Playlist deleted successfully",
+            deletedPlaylist
+        });
+    } catch (error) {
+        console.error("Error deleting playlist:", error);
+        return resp.status(500).json({
+            success: false,
+            message: "Internal server error while deleting playlist",
+        });
+    }
+ };
 
 export const removeProblemFromPlaylist = async (req, resp) => {
+    const { playListid } = req.params;
+    const { problemIds } = req.body;
     
+    try {
+        if(!Array.isArray(problemIds) || problemIds.length === 0) {
+            return resp.status(400).json({
+                success: false,
+                message: "Invalid problem IDs",
+            });
+        }
+
+        const deleteProblemsFromPlaylist = await db.problemsInPlayList.deleteMany({
+            where :{
+                playListid ,
+                problemId :{
+                    in:problemIds
+                }
+            }
+        })
+
+        resp.status(200).json({
+            success: true,
+            message: "Problems removed from playlist successfully",
+            deleteProblemsFromPlaylist
+        });
+    }
+    catch (error) {
+        console.error("Error deleting problems from playlist:", error);
+        return resp.status(500).json({
+            success: false,
+            message: "Internal server error while deleting problems from playlist",
+        });
+    }
 };
 
 export const getAllPlayListDetailsbyId = async (req, resp) => {

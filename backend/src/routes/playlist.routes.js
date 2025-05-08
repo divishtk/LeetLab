@@ -6,11 +6,11 @@ import { addProblemToPlaylist, createPlayList, deletePlaylist, getAllListDetails
 const playlistRoutes = express.Router();
 
 playlistRoutes.get("/", authMiddleware , getAllListDetails)
-playlistRoutes.get("/:playlistId", authMiddleware , getAllPlayListDetailsbyId)
+playlistRoutes.get("/:playListid", authMiddleware , getAllPlayListDetailsbyId)
 playlistRoutes.post("/create-playList", authMiddleware , createPlayList)
-playlistRoutes.post('/:playlistId/add-problem',authMiddleware, addProblemToPlaylist)
-playlistRoutes.delete('/:playlistId',authMiddleware, deletePlaylist)
-playlistRoutes.delete('/:playlistId/remove-problem', authMiddleware , removeProblemFromPlaylist)
+playlistRoutes.post('/:playListid/add-problem',authMiddleware, addProblemToPlaylist)
+playlistRoutes.delete('/:playListid',authMiddleware, deletePlaylist)
+playlistRoutes.delete('/:playListid/remove-problem', authMiddleware , removeProblemFromPlaylist)
 
 
 
